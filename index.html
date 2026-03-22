@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프리미엄 썸네일 메이커</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&family=Gowun+Dodum&family=Jua&family=Noto+Sans+KR:wght@400;700;900&display=swap"
+        rel="stylesheet">
+    <!-- html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- 메인 헤더 -->
+        <header class="app-header">
+            <div class="logo">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <h1>Thumbnail Maker</h1>
+            </div>
+            <button id="export-btn" class="btn primary-btn">
+                <i class="fa-solid fa-download"></i> 이미지 저장
+            </button>
+        </header>
+
+        <div class="workspace">
+            <!-- 썸네일 프리뷰 영역 -->
+            <main class="preview-area">
+                <div class="canvas-container" id="canvas-container">
+                    <div class="thumbnail-canvas" id="thumbnail-canvas">
+                        <div class="bg-layer" id="bg-layer">
+                            <img id="bg-image" src="" alt="Background" style="display: none;">
+                        </div>
+
+                        <!-- 추가: 전체 블라인드 & 테두리 레이어 -->
+                        <div class="image-blind" id="image-blind"></div>
+                        <div class="image-border-layer" id="image-border-layer"></div>
+
+                        <!-- 텍스트 박스 컨테이너 (위치 이동용) -->
+                        <div class="text-box-container" id="text-box-container">
+                            <div class="text-box-inner" id="text-box-inner">
+                                <div class="text-bg" id="text-bg"></div>
+                                <div class="text-content" id="text-content" contenteditable="true" spellcheck="false">
+                                    여기에 텍스트를<br>입력하세요
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="canvas-controls">
+                    <button id="reset-pos-btn" class="btn secondary-btn" title="위치 초기화">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </button>
+                </div>
+            </main>
+
+            <!-- 사이드바 컨트롤 영역 -->
+            <aside class="sidebar">
+                <div class="control-panel">
+                    <!-- 패널 1: 배경 사진 및 블라인드 -->
+                    <div class="panel-section">
+                        <h2><i class="fa-regular fa-image"></i> 사진 및 블라인드</h2>
+                        <div class="file-upload-wrapper">
+                            <label for="image-upload" class="file-upload-label">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                                <span>이미지 업로드</span>
+                            </label>
+                            <input type="file" id="image-upload" accept="image/*" class="hidden-input">
+                        </div>
+                        <div class="control-group">
+                            <label>사진 확대 (Zoom)</label>
+                            <input type="range" id="bg-zoom" min="0.5" max="3" step="0.1" value="1">
+                        </div>
+                        <div class="control-group"
+                            style="margin-top: 20px; border-top: 1px dashed #374151; padding-top: 16px;">
+                            <label>사진 블라인드 (농도)</label>
+                            <div class="range-with-value">
+                                <input type="range" id="blind-opacity" min="0" max="1" step="0.05" value="0">
+                                <span class="val-display" id="blind-opacity-val">0%</span>
+                            </div>
+                            <p class="help-text">사진 전체를 어둡게 덮어줍니다.</p>
+                        </div>
+                    </div>
+
+                    <!-- 패널 2: 사진 테두리 -->
+                    <div class="panel-section">
+                        <h2><i class="fa-regular fa-square"></i> 사진 테두리</h2>
+                        <div class="control-group">
+                            <label>테두리 굵기</label>
+                            <div class="range-with-value">
+                                <input type="range" id="img-border-width" min="0" max="50" step="1" value="0">
+                                <span class="val-display" id="img-border-width-val">0px</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label>테두리 색상</label>
+                            <input type="color" id="img-border-color" value="#ffffff" class="color-picker">
+                        </div>
+                        <div class="control-group">
+                            <label>테두리 안쪽 여백</label>
+                            <input type="range" id="img-border-offset" min="0" max="100" step="1" value="20">
+                        </div>
+                    </div>
+
+                    <!-- 패널 3: 텍스트 박스 (직사각형) -->
+                    <div class="panel-section">
+                        <h2><i class="fa-solid fa-square-full"></i> 텍스트 배경 상자</h2>
+                        <div class="control-group">
+                            <label>상자 불투명도</label>
+                            <div class="range-with-value">
+                                <input type="range" id="bg-opacity" min="0" max="1" step="0.05" value="0.7">
+                                <span class="val-display" id="bg-opacity-val">70%</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label>상자 색상</label>
+                            <input type="color" id="bg-color" value="#000000" class="color-picker">
+                        </div>
+                        <div class="control-group">
+                            <label>상자 여백 (패딩)</label>
+                            <input type="range" id="bg-padding" min="0" max="150" step="5" value="40">
+                        </div>
+                    </div>
+
+                    <!-- 패널 4: 텍스트 글꼴 및 스타일 -->
+                    <div class="panel-section">
+                        <h2><i class="fa-solid fa-font"></i> 글꼴 및 텍스트</h2>
+                        <div class="control-group">
+                            <label>글꼴 선택</label>
+                            <select id="font-family" class="custom-select">
+                                <option value="'Pretendard', sans-serif">프리텐다드 (기본)</option>
+                                <option value="'Noto Sans KR', sans-serif">노토 산스</option>
+                                <option value="'Jua', sans-serif">배달의민족 주아</option>
+                                <option value="'Gowun Dodum', sans-serif">고운 돋움</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label>글씨체 색상</label>
+                            <input type="color" id="text-color" value="#ffffff" class="color-picker">
+                        </div>
+                        <div class="control-group">
+                            <label>글자 크기</label>
+                            <div class="range-with-value">
+                                <input type="range" id="font-size" min="20" max="250" step="1" value="80">
+                                <span class="val-display" id="font-size-val">80px</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label>글자 간격 (자간)</label>
+                            <input type="range" id="letter-spacing" min="-10" max="20" step="1" value="0">
+                        </div>
+                        <div class="control-group">
+                            <label>줄 간격</label>
+                            <input type="range" id="line-height" min="1" max="2.5" step="0.1" value="1.4">
+                        </div>
+                    </div>
+
+                </div>
+            </aside>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
